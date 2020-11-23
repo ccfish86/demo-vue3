@@ -2,12 +2,12 @@
  * @Author: ccfish
  * @Date: 2020-11-19 14:05:38
  * @LastEditors: ccfish
- * @LastEditTime: 2020-11-19 18:30:40
+ * @LastEditTime: 2020-11-23 09:50:10
  * @Description: axios/xmlHttp请求
  */
 import axios, { AxiosRequestConfig } from "axios";
-import { Message } from "element-plus/lib/message";
-import { MessageBox } from "element-plus/lib/message-box";
+import Message from "element-plus/lib/message";
+import MessageBox from "element-plus/lib/message-box";
 import qs from "qs";
 import { saveFile } from "./utils";
 
@@ -38,59 +38,80 @@ service.interceptors.request.use(
 export function request(config: AxiosRequestConfig): Promise<any> {
   const args = Object.assign({}, config);
   return new Promise(function(resolve, reject) {
-    service.request(config).then(res => {
-      const {
-        status,
-        statusText,
-        data: { code, msg, data, success }
-      } = res;
-      if (status === 200) {
-        if (success) {
-          return resolve(data);
-        } else {
-          console.log(code, msg);
-          console.log(axios, Message);
-          Message({
-            message: msg || "网络异常",
-            type: "error"
-          });
-          return reject(new Error(msg || "服务器端错误"));
+    service
+      .request(config)
+      .then(res => {
+        const {
+          status,
+          statusText,
+          data: { code, msg, data, success }
+        } = res;
+
+        if (status === 200) {
+          if (success) {
+            return resolve(data);
+          } else {
+            console.log(code, msg);
+            console.log(axios, Message);
+            Message({
+              message: msg || "网络异常",
+              type: "error"
+            });
+            return reject(new Error(msg || "服务器端错误"));
+          }
         }
-      } else if (status === 401) {
-        MessageBox.confirm("登录超时, 重新登录或继续停留？", "确定登出", {
-          confirmButtonText: "重新登录",
-          cancelButtonText: "继续停留",
-          type: "warning"
-        }).then(() => {
-          //   UserModule.ResetToken();
-          // TODO 清除缓存，跳转至登录
-          location.reload(); // To prevent bugs from vue-router
-        });
-      } else if (status === 403) {
-        Message({
-          message: msg || "没有授权",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject(msg);
-      } else if (status === 500) {
-        Message({
-          message: msg || "网络异常, 请稍后再试",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject(msg);
-      } else if (status === 502) {
-        Message({
-          message: "服务器故障, 请稍后再试",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject("服务器故障, 请稍后再试");
-      } else {
-        return resolve(data);
-      }
-    });
+      })
+      .catch(err => {
+        if (!err.response) {
+          return reject(new Error("网络错误:" + err.message));
+        }
+
+        const {
+          status,
+          statusText,
+          data: { code, msg, data, success }
+        } = err.response;
+        if (status === 401) {
+          MessageBox.confirm("登录超时, 重新登录或继续停留？", "确定登出", {
+            confirmButtonText: "重新登录",
+            cancelButtonText: "继续停留",
+            type: "warning"
+          }).then(() => {
+            //   UserModule.ResetToken();
+            // TODO 清除缓存，跳转至登录
+            location.reload(); // To prevent bugs from vue-router
+          });
+        } else if (status === 403) {
+          Message({
+            message: msg || "没有授权",
+            type: "error",
+            duration: 5 * 1000
+          });
+          return reject(msg);
+        } else if (status === 500) {
+          Message({
+            message: msg || "网络异常, 请稍后再试",
+            type: "error",
+            duration: 5 * 1000
+          });
+          return reject(msg);
+        } else if (status === 502) {
+          Message({
+            message: "服务器故障, 请稍后再试",
+            type: "error",
+            duration: 5 * 1000
+          });
+          return reject("服务器故障, 请稍后再试");
+        } else {
+          console.log(err, Message);
+          Message({
+            message: statusText || "网络异常",
+            type: "error",
+            duration: 5 * 1000
+          });
+          return reject(new Error(statusText || "网络异常"));
+        }
+      });
   });
 }
 
@@ -142,7 +163,6 @@ export function download(config: any) {
         } else {
           const { status, statusText } = xhr;
           const msg = `status[${status}], statusText[${statusText}]`;
-
           Message({
             message: "下载失败: " + msg,
             type: "error",
@@ -154,47 +174,6 @@ export function download(config: any) {
       }
     };
     xhr.send();
-
-    service.request(config).then(res => {
-      const { status, statusText, data } = res;
-
-      if (status === 200) {
-        return resolve(data);
-      } else if (status === 401) {
-        MessageBox.confirm("登录超时, 重新登录或继续停留？", "确定登出", {
-          confirmButtonText: "重新登录",
-          cancelButtonText: "继续停留",
-          type: "warning"
-        }).then(() => {
-          //   UserModule.ResetToken();
-          // TODO 清除缓存，跳转至登录
-          location.reload(); // To prevent bugs from vue-router
-        });
-      } else if (status === 403) {
-        Message({
-          message: data.msg || "没有授权",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject(data.msg);
-      } else if (status === 500) {
-        Message({
-          message: data.msg || "网络异常, 请稍后再试",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject(data.msg);
-      } else if (status === 502) {
-        Message({
-          message: "服务器故障, 请稍后再试",
-          type: "error",
-          duration: 5 * 1000
-        });
-        return reject("服务器故障, 请稍后再试");
-      } else {
-        return resolve(data);
-      }
-    });
   });
 }
 
