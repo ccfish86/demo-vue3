@@ -1,9 +1,9 @@
 <!--
  * @Author: ccfish
- * @Date: 2020-11-19 11:44:59
+ * @Date: 2020-11-23 10:24:13
  * @LastEditors: ccfish
- * @LastEditTime: 2020-11-20 10:26:19
- * @Description: 文件上传
+ * @LastEditTime: 2020-11-23 11:25:36
+ * @Description: file content
 -->
 <!--
   <div>
@@ -19,6 +19,7 @@
       :action="`${path}/fileUploadAndDownload/upload`"
       :show-file-list="false"
       :on-success="handleImageSuccess"
+      :on-error="handleImageError"
       :before-upload="beforeImageUpload"
       :multiple="false"
     >
@@ -28,11 +29,13 @@
   </div>
 </template>
 <script lang="ts">
-const path = process.env.VUE_APP_BASE_API;
+const PATH = process.env.VUE_APP_BASE_API;
 import ImageCompress from "@/utils/image.ts";
-import { Options, Vue } from "vue-class-component";
+import { defineComponent, ref, onMounted, watchEffect } from "vue";
 
-@Options({
+export default defineComponent({
+  // type inference enabled
+  name: "upload-image",
   props: {
     imageUrl: {
       type: String,
@@ -51,34 +54,38 @@ import { Options, Vue } from "vue-class-component";
     prop: "imageUrl",
     event: "change",
   },
-})
-export default class Image extends Vue {
-  imageUrl!: string;
-  fileSize!: number;
-  maxWH!: number;
+  emits: ["change"],
+  setup(props, ctx) {
+    const path = ref(PATH);
+    const beforeImageUpload = (
+      file: File
+    ): boolean | Promise<File | Blob> | boolean | unknown => {
+      console.log("before image upload");
+      const isRightSize = file.size / 1024 < props.fileSize;
+      if (!isRightSize) {
+        // 压缩
+        const compress = new ImageCompress(file, props.fileSize, props.maxWH);
+        return compress.compress();
+      }
+      return isRightSize;
+    };
+    // 初始化
+    const handleImageSuccess = (res: any) => {
+      // this.imageUrl = URL.createObjectURL(file.raw);
+      const { data } = res;
+      if (data.file) {
+        ctx.emit("change", data.file.url);
+      }
+    };
 
-  path: string = path;
+    const handleImageError = (err: any) => {
+      const { status, message } = err;
+      console.log(err.response);
+    };
 
-  beforeImageUpload(
-    file: File
-  ): boolean | Promise<File | Blob> | boolean | unknown {
-    console.log("before image upload");
-    const isRightSize = file.size / 1024 < this.fileSize;
-    if (!isRightSize) {
-      // 压缩
-      const compress = new ImageCompress(file, this.fileSize, this.maxWH);
-      return compress.compress();
-    }
-    return isRightSize;
-  }
-  handleImageSuccess(res: any) {
-    // this.imageUrl = URL.createObjectURL(file.raw);
-    const { data } = res;
-    if (data.file) {
-      this.$emit("change", data.file.url);
-    }
-  }
-}
+    return { path, beforeImageUpload, handleImageSuccess, handleImageError };
+  },
+});
 </script>
 
 <style scoped>
