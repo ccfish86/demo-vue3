@@ -2,7 +2,7 @@
  * @Author: ccfish
  * @Date: 2020-11-19 11:30:33
  * @LastEditors: ccfish
- * @LastEditTime: 2020-11-20 14:14:29
+ * @LastEditTime: 2020-11-23 11:42:33
  * @Description: 测试用
 -->
 <template>
@@ -30,12 +30,28 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue } from "vue-class-component";
 import UploadImage from "@/components/upload/image.vue";
 import { login } from "@/api/sample/login";
 import UserLoginParam from "@/api/sample/model/UserLoginParam";
+import { defineComponent, ref } from "vue";
 
-@Options({
+export default defineComponent({
+  props: { msg: String },
+  components: { UploadImage },
+
+  setup(props) {
+    const form = ref({ code: "0001", username: "", password: "" });
+    const handleLogin = () => {
+      const params: UserLoginParam = { ...form.value };
+      login(params).then((res) => {
+        console.log(res);
+      });
+    };
+    return { form, handleLogin };
+  },
+});
+
+/*@Options({
   props: {
     msg: String,
   },
@@ -56,6 +72,7 @@ export default class HelloWorld extends Vue {
     });
   }
 }
+*/
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
