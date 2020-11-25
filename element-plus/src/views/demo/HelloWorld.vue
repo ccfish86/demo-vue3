@@ -2,13 +2,15 @@
  * @Author: ccfish
  * @Date: 2020-11-19 11:30:33
  * @LastEditors: ccfish
- * @LastEditTime: 2020-11-23 11:42:33
+ * @LastEditTime: 2020-11-25 09:47:42
  * @Description: 测试用
 -->
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
     <el-tag name="1" color="primary">22</el-tag>
+    <span>version:{{ version }}</span>
+    <el-button name="1" type="primary" @click="handleClick">click me</el-button>
 
     <upload-image v-model="url" maxWH="600"></upload-image>
 
@@ -33,13 +35,13 @@
 import UploadImage from "@/components/upload/image.vue";
 import { login } from "@/api/sample/login";
 import UserLoginParam from "@/api/sample/model/UserLoginParam";
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, getCurrentInstance } from "vue";
 
 export default defineComponent({
   props: { msg: String },
   components: { UploadImage },
 
-  setup(props) {
+  setup(props, ctx) {
     const form = ref({ code: "0001", username: "", password: "" });
     const handleLogin = () => {
       const params: UserLoginParam = { ...form.value };
@@ -47,32 +49,18 @@ export default defineComponent({
         console.log(res);
       });
     };
-    return { form, handleLogin };
+    const vm = getCurrentInstance()?.proxy;
+    const handleClick = () => {
+      // 获取查询参数
+      console.log(vm);
+      const queries = vm?.$route.query;
+      vm?.$message({ message: "操作成功" });
+      vm?.$msgbox({ message: "message box" });
+      console.log(queries);
+    };
+    return { form, handleLogin, handleClick };
   },
 });
-
-/*@Options({
-  props: {
-    msg: String,
-  },
-  components: {
-    UploadImage,
-  },
-})
-export default class HelloWorld extends Vue {
-  msg!: string;
-  url = "";
-  form = { code: "0001", username: "", password: "" };
-
-  handleLogin() {
-    console.log("logining");
-    const params: UserLoginParam = { ...this.form };
-    login(params).then((res) => {
-      console.log(res);
-    });
-  }
-}
-*/
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

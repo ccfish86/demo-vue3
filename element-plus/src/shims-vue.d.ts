@@ -2,7 +2,7 @@
  * @Author: ccfish
  * @Date: 2020-11-19 11:30:33
  * @LastEditors: ccfish
- * @LastEditTime: 2020-11-20 10:50:47
+ * @LastEditTime: 2020-11-25 09:40:18
  * @Description: 定义ICON组件
  */
 declare module '*.vue' {
