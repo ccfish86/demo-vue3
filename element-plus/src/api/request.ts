@@ -6,8 +6,7 @@
  * @Description: axios/xmlHttp请求
  */
 import axios, { AxiosRequestConfig } from "axios";
-import Message from "element-plus/lib/message";
-import MessageBox from "element-plus/lib/message-box";
+import { ElMessage, ElMessageBox } from "element-plus";
 import qs from "qs";
 import { saveFile } from "./utils";
 
@@ -52,8 +51,7 @@ export function request(config: AxiosRequestConfig): Promise<any> {
             return resolve(data);
           } else {
             console.log(code, msg);
-            console.log(axios, Message);
-            Message({
+            ElMessage({
               message: msg || "网络异常",
               type: "error"
             });
@@ -72,7 +70,7 @@ export function request(config: AxiosRequestConfig): Promise<any> {
           data: { code, msg, data, success }
         } = err.response;
         if (status === 401) {
-          MessageBox.confirm("登录超时, 重新登录或继续停留？", "确定登出", {
+          ElMessageBox.confirm("登录超时, 重新登录或继续停留？", "确定登出", {
             confirmButtonText: "重新登录",
             cancelButtonText: "继续停留",
             type: "warning"
@@ -82,29 +80,28 @@ export function request(config: AxiosRequestConfig): Promise<any> {
             location.reload(); // To prevent bugs from vue-router
           });
         } else if (status === 403) {
-          Message({
+          ElMessage({
             message: msg || "没有授权",
             type: "error",
             duration: 5 * 1000
           });
           return reject(msg);
         } else if (status === 500) {
-          Message({
+          ElMessage({
             message: msg || "网络异常, 请稍后再试",
             type: "error",
             duration: 5 * 1000
           });
           return reject(msg);
         } else if (status === 502) {
-          Message({
+          ElMessage({
             message: "服务器故障, 请稍后再试",
             type: "error",
             duration: 5 * 1000
           });
           return reject("服务器故障, 请稍后再试");
         } else {
-          console.log(err, Message);
-          Message({
+          ElMessage({
             message: statusText || "网络异常",
             type: "error",
             duration: 5 * 1000
@@ -137,7 +134,7 @@ export function download(config: any) {
               const rescontent = reader.result?.toString();
               const content = rescontent ? JSON.parse(rescontent) : {};
               // alert('下载文件异常:' + content.msg)
-              Message({
+              ElMessage({
                 message: content.msg || "下载失败",
                 type: "error",
                 duration: 5 * 1000
@@ -163,7 +160,7 @@ export function download(config: any) {
         } else {
           const { status, statusText } = xhr;
           const msg = `status[${status}], statusText[${statusText}]`;
-          Message({
+          ElMessage({
             message: "下载失败: " + msg,
             type: "error",
             duration: 5 * 1000

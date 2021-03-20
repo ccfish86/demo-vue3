@@ -7,11 +7,9 @@
  */
 
 import ElementPlus from "element-plus";
-import Message from "element-plus/lib/message";
 import "../element-variables.scss";
 import locale from "element-plus/lib/locale/lang/zh-cn";
 
 export default (app: any) => {
   app.use(ElementPlus, { locale });
-  // app.provide("$message", Message);
 };
